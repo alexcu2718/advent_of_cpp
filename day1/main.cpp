@@ -10,7 +10,7 @@ auto parse_line(std::string_view spos) -> int {
   auto multiplier = 1 - (2 * static_cast<int>(left_rotation));
 
   auto value = spos.substr(1, spos.length());
-  int init = 0;
+  int init{0};
   for (auto const &ch : value) {
     init = (init * TEN) + static_cast<int>(ch - '0');
   }
@@ -21,8 +21,8 @@ auto parse_line(std::string_view spos) -> int {
 auto process_file_part1(const std::string &filename) -> int {
   constexpr int START{50};
   constexpr int ONEHUN{100};
-  int counter = 0;
-  int start_pos = START;
+  int counter{0};
+  int start_pos{START};
   std::string line;
   std::fstream file(filename);
   while (std::getline(file, line)) {
@@ -40,8 +40,8 @@ auto process_file_part1(const std::string &filename) -> int {
 auto process_file_part2(const std::string &filename) -> int {
   constexpr int START{50};
   constexpr int ONEHUN{100};
-  int counter = 0;
-  int start_pos = START;
+  int counter{0};
+  int start_pos{START};
   std::string line;
   std::fstream file(filename);
   while (std::getline(file, line)) {
@@ -72,7 +72,7 @@ auto process_file_part2(const std::string &filename) -> int {
 
 auto main() -> int {
 
-  auto ans1 = process_file_part2("./aoc_inputs/day1.txt");
+  auto ans1 = process_file_part1("./aoc_inputs/day1.txt");
 
   auto ans2 = process_file_part2("./aoc_inputs/day1.txt");
   std::cout << std::format("the solution to p1 is {} solution to part2 is {}",
