@@ -1,10 +1,12 @@
+#include <cstddef>
 #include <cstdint>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <string_view>
 
-auto parse_str(std::string_view spos) -> uint64_t {
+static auto parse_str(std::string_view spos) -> uint64_t {
   constexpr uint64_t TEN{10};
   uint64_t init{0};
   for (auto const &ch : spos) {
@@ -15,13 +17,13 @@ auto parse_str(std::string_view spos) -> uint64_t {
   return init;
 }
 
-auto is_invalid(uint64_t num) -> bool {
-  std::string s = std::format("{}", num);
-  size_t len = s.length();
+static auto is_invalid(uint64_t num) -> bool {
+  const std::string s = std::format("{}", num);
+  const size_t len = s.length();
 
   for (size_t i = 2; i <= 2; ++i) {
     if (len % i == 0) {
-      std::string part = s.substr(0, len / i);
+      const std::string part = s.substr(0, len / i);
       std::string reconstructed;
       for (size_t j = 0; j < i; ++j) {
         reconstructed += part;
@@ -32,7 +34,7 @@ auto is_invalid(uint64_t num) -> bool {
   return false;
 }
 
-auto identify_invalid(std::string_view line) -> uint64_t {
+static auto identify_invalid(std::string_view line) -> uint64_t {
 
   auto delimiter_pos = line.find('-');
 
@@ -47,7 +49,7 @@ auto identify_invalid(std::string_view line) -> uint64_t {
   return total;
 }
 
-auto process_file(const std::string &filename) -> uint64_t {
+static auto process_file(const std::string &filename) -> uint64_t {
 
   std::string line;
   std::fstream file(filename);

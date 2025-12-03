@@ -1,15 +1,16 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <string_view>
 
-auto parse_line(std::string_view spos) -> int {
+static auto parse_line(std::string_view spos) -> int {
   constexpr int TEN{10};
   // L= negative R= positive
   auto left_rotation = spos[0] == 'L';
   auto multiplier = 1 - (2 * static_cast<int>(left_rotation));
 
-  auto value = spos.substr(1, spos.length());
+  auto value = spos.substr(1);
   int init{0};
   for (auto const &ch : value) {
     init = (init * TEN) + static_cast<int>(ch - '0');
@@ -18,7 +19,7 @@ auto parse_line(std::string_view spos) -> int {
   return multiplier * init;
 }
 
-auto process_file_part1(const std::string &filename) -> int {
+static auto process_file_part1(const std::string &filename) -> int {
   constexpr int START{50};
   constexpr int ONEHUN{100};
   int counter{0};
@@ -37,7 +38,7 @@ auto process_file_part1(const std::string &filename) -> int {
   return counter;
 }
 
-auto process_file_part2(const std::string &filename) -> int {
+static auto process_file_part2(const std::string &filename) -> int {
   constexpr int START{50};
   constexpr int ONEHUN{100};
   int counter{0};
@@ -50,7 +51,7 @@ auto process_file_part2(const std::string &filename) -> int {
     auto is_left = static_cast<int>(parsed_val < 0);
     int count = parsed_val - (2 * parsed_val * is_left);
 
-    int full_rotations = count / ONEHUN;
+    const int full_rotations = count / ONEHUN;
     counter += full_rotations;
     count = count % ONEHUN;
     // so many tricks here again
