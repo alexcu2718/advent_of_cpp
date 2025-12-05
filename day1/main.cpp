@@ -4,9 +4,13 @@
 #include <string>
 #include <string_view>
 
-static auto parse_line(std::string_view spos) -> int {
+using std::format;
+using std::ifstream;
+using std::string;
+using std::string_view;
+
+static auto parse_line(string_view spos) -> int {
   constexpr int TEN{10};
-  // L= negative R= positive
   auto left_rotation = spos[0] == 'L';
   auto multiplier = 1 - (2 * static_cast<int>(left_rotation));
 
@@ -19,16 +23,16 @@ static auto parse_line(std::string_view spos) -> int {
   return multiplier * init;
 }
 
-static auto process_file_part1(const std::string &filename) -> int {
+static auto process_file_part1(const string &filename) -> int {
   constexpr int START{50};
   constexpr int ONEHUN{100};
   int counter{0};
   int start_pos{START};
-  std::string line;
-  std::fstream file(filename);
+  string line;
+  ifstream file(filename);
   while (std::getline(file, line)) {
 
-    auto parsed_val = parse_line(std::string_view(line));
+    auto parsed_val = parse_line(string_view(line));
     auto is_negative = parsed_val < 0;
     auto useval = ONEHUN * (static_cast<int>(is_negative)); // make branchless
     start_pos = (useval + (((start_pos + parsed_val)))) % ONEHUN;
@@ -38,7 +42,7 @@ static auto process_file_part1(const std::string &filename) -> int {
   return counter;
 }
 
-static auto process_file_part2(const std::string &filename) -> int {
+static auto process_file_part2(const string &filename) -> int {
   constexpr int START{50};
   constexpr int ONEHUN{100};
   int counter{0};
@@ -47,7 +51,7 @@ static auto process_file_part2(const std::string &filename) -> int {
   std::fstream file(filename);
   while (std::getline(file, line)) {
 
-    auto parsed_val = parse_line(std::string_view(line));
+    auto parsed_val = parse_line(string_view(line));
     auto is_left = static_cast<int>(parsed_val < 0);
     int count = parsed_val - (2 * parsed_val * is_left);
 
@@ -76,8 +80,8 @@ auto main() -> int {
   auto ans1 = process_file_part1("./aoc_inputs/day1.txt");
 
   auto ans2 = process_file_part2("./aoc_inputs/day1.txt");
-  std::cout << std::format("the solution to p1 is {} solution to part2 is {}",
-                           ans1, ans2)
+  std::cout << format("the solution to p1 is {} solution to part2 is {}", ans1,
+                      ans2)
             << "\n";
 
   return 0;
