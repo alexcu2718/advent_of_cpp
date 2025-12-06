@@ -33,7 +33,6 @@ CheckOptions:
     value: true
   - key: cppcoreguidelines-rvalue-reference-param-not-moved.IgnoreUnnamedParams
     value: true
-
   - key: modernize-use-auto.MinTypeNameLength
     value: 5
   - key: modernize-use-nullptr.NullMacros
@@ -46,19 +45,16 @@ CheckOptions:
     value: "::std::vector;::std::list;::std::deque"
   - key: modernize-use-emplace.SmartPointers
     value: "::std::shared_ptr;::std::unique_ptr"
-
   - key: performance-for-range-copy.WarnOnAllAutoCopies
     value: true
   - key: performance-inefficient-string-concatenation.StrictMode
     value: true
   - key: performance-unnecessary-copy-initialization.AllowedTypes
     value: "std::string_view;std::span"
-
   - key: bugprone-use-after-move.CheckMove
     value: true
   - key: bugprone-dangling-handle.HandleClasses
     value: "std::string_view;std::span;std::experimental::string_view"
-
   - key: readability-function-cognitive-complexity.Threshold
     value: 30
   - key: readability-function-size.LineThreshold
@@ -69,10 +65,15 @@ CheckOptions:
     value: true
   - key: readability-qualified-auto.AddConstToQualified
     value: true
-
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
     value: true
   - key: misc-const-correctness.WarnPointersAsValues
     value: true
   - key: misc-const-correctness.TransformPointersAsValues
+    value: true
+  - key: performance-no-automatic-move.AllowedTypes
+    value: ""
+  - key: performance-move-const-arg.CheckMoveToConstRef
+    value: true
+  - key: modernize-return-braced-init-list.SimplifyReturnStatement
     value: true
