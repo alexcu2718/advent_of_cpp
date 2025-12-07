@@ -18,7 +18,12 @@ Checks: >
   -cppcoreguidelines-avoid-magic-numbers,
   -misc-non-private-member-variables-in-classes,
   -misc-use-anonymous-namespace,
-  -bugprone-exception-escape
+  -bugprone-exception-escape,
+  -misc-include-cleaner,
+  -llvm-include-order,
+  -readability-include-order,
+  -modernize-use-auto,
+  -modernize-use-trailing-return-type
 
 WarningsAsErrors: ""
 HeaderFilterRegex: ".*"
