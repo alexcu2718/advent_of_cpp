@@ -83,10 +83,6 @@ static auto find_ingredients(const IngredientList &list) -> uint64_t {
 static auto count_fresh_ids(const IngredientList &list) -> uint64_t {
   auto idranges = list.first;
 
-  if (idranges.empty()) {
-    return 0;
-  }
-
   std::ranges::sort(idranges, {}, [](const array<uint64_t, 2> &range) -> auto {
     return range[0];
   });
