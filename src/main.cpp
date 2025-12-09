@@ -1,104 +1,89 @@
-#include <cstddef>
+#include <array>
+#include <cassert>
+#include <cstdint>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
-
+using std::array;
 using std::format;
 using std::ifstream;
+using std::pair;
 using std::string;
+using std::string_view;
 using std::vector;
 
-using Matrix = vector<vector<char>>;
+using IngredientList = pair<vector<array<uint64_t, 2>>, vector<uint64_t>>;
 
-static auto check_matrix(Matrix &matrix, bool replace) -> int {
+static auto parse_str(string_view spos) -> uint64_t {
+  constexpr int TEN{10};
 
-  auto rows = matrix.size();
-  auto cols = matrix[0].size();
+  uint64_t init{0};
+  for (auto const &ch : spos) {
+    init = (init * TEN) + static_cast<uint64_t>(ch - '0');
+  }
 
-  int found{0};
+  return init;
+}
 
-  for (size_t i = 1; i < rows - 1; i++) {
-    for (size_t j = 1; j < cols - 1; j++) {
-      if (matrix[i][j] == '@') {
+static auto read_file(const string &filename) -> IngredientList {
+  ifstream inputFile(filename);
 
-        auto check_n = static_cast<int>(matrix[i - 1][j] == '@');
-        auto check_s = static_cast<int>(matrix[i + 1][j] == '@');
-        auto check_w = static_cast<int>(matrix[i][j - 1] == '@');
-        auto check_e = static_cast<int>(matrix[i][j + 1] == '@');
-        auto check_nw = static_cast<int>(matrix[i - 1][j - 1] == '@');
-        auto check_ne = static_cast<int>(matrix[i - 1][j + 1] == '@');
-        auto check_sw = static_cast<int>(matrix[i + 1][j - 1] == '@');
-        auto check_se = static_cast<int>(matrix[i + 1][j + 1] == '@');
-        auto sum = check_n + check_s + check_w + check_e + check_nw + check_ne +
-                   check_sw + check_se;
-        if (sum < 4) {
-          found++;
-          if (replace) {
-            matrix[i][j] = 'x';
-          }
-        }
+  vector<array<uint64_t, 2>> id_range;
+  vector<uint64_t> available_ids;
+  string line;
+
+  bool passed_newline = false;
+  while (std::getline(inputFile, line)) {
+
+    if (!passed_newline) {
+      if (line.empty()) {
+        passed_newline = true;
+        continue;
+      }
+
+      auto hyphen_pos = line.find('-');
+      auto id_start = parse_str(string_view(line).substr(0, hyphen_pos));
+      auto id_end = parse_str(string_view(line).substr(hyphen_pos + 1));
+      assert(id_start <= id_end);
+      auto newpair = array{id_start, id_end};
+      id_range.push_back(newpair);
+    } else {
+
+      available_ids.push_back(parse_str(string_view(line)));
+    }
+  }
+
+  return std::make_pair(id_range, available_ids);
+}
+
+static auto find_ingredients(const IngredientList &list) -> uint64_t {
+
+  auto idranges = list.first;
+
+  auto available_ingredients = list.second;
+  uint64_t start = 0;
+  // probably inefficient but I dont know a better algorithm
+  for (auto const &ingred : available_ingredients) {
+    for (auto const avail : idranges) {
+      if (avail[0] <= ingred && ingred <= avail[1]) {
+        start++;
+        break;
       }
     }
   }
-
-  return found;
-}
-
-static auto solve_part2(Matrix matrix) -> int {
-  int total_removed = 0;
-
-  while (true) {
-    const int removed_this_round = check_matrix(matrix, true);
-    if (removed_this_round == 0) {
-      break;
-    }
-    total_removed += removed_this_round;
-  }
-
-  return total_removed;
-}
-
-static auto read_matrix(const string &filename) -> Matrix {
-  ifstream inputFile(filename);
-
-  Matrix matrix;
-  string line;
-  // pad the matrix with '.' above/below/to both sides so we dont need to
-  // special case anything  in the index checks:)
-  while (std::getline(inputFile, line)) {
-    vector<char> row;
-    row.reserve(line.length() + 2);
-    row.push_back('.');
-    row.insert(row.end(), line.begin(), line.end());
-    row.push_back('.');
-    matrix.push_back(row);
-  }
-
-  const size_t width = matrix[0].size();
-  const vector<char> border_row(width, '.');
-  matrix.insert(matrix.begin(), border_row);
-  matrix.push_back(border_row);
-
-  return matrix;
+  return start;
 }
 
 auto main() -> int {
-  // This could be cleaner but I hated this problem.
-  auto sample_matrix = read_matrix("./aoc_inputs/day4_sample.txt");
-  const auto sample = check_matrix(sample_matrix, false);
 
-  auto part1_matrix = read_matrix("./aoc_inputs/day4.txt");
-  const auto part1 = check_matrix(part1_matrix, false);
+  auto results = read_file("./aoc_inputs/day5.txt");
 
-  auto part2_matrix = read_matrix("./aoc_inputs/day4.txt");
-  const auto part2 = solve_part2(part2_matrix);
+  auto get_results = find_ingredients(results);
 
-  std::cout << format("found {} available in sample\nfound {} available to "
-                      "move in part1\n and answer to part2 is {}",
-                      sample, part1, part2)
-            << "\n";
-
+  std::cout << format("The available ingredients for P1 are {}\n", get_results);
   return 0;
 }
