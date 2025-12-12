@@ -1,23 +1,26 @@
+#include <concepts>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <string_view>
-
 using std::format;
 using std::ifstream;
 using std::string;
 using std::string_view;
 
-static auto parse_line(string_view spos) -> int {
-  constexpr int TEN{10};
+template <typename IntType>
+  requires std::integral<IntType>
+  
+static auto parse_line(string_view spos) -> IntType {
+  constexpr IntType TEN{10};
   auto left_rotation = spos[0] == 'L';
-  auto multiplier = 1 - (2 * static_cast<int>(left_rotation));
+  auto multiplier = 1 - (2 * static_cast<IntType>(left_rotation));
 
   auto value = spos.substr(1);
-  int init{0};
-  for (auto const &ch : value) {
-    init = (init * TEN) + static_cast<int>(ch - '0');
+  IntType init{0};
+  for (auto const ch : value) {
+    init = (init * TEN) + static_cast<IntType>(ch - '0');
   }
 
   return multiplier * init;
@@ -32,7 +35,7 @@ static auto process_file_part1(const string &filename) -> int {
   ifstream file(filename);
   while (std::getline(file, line)) {
 
-    auto parsed_val = parse_line(string_view(line));
+    auto parsed_val = parse_line<int>(string_view(line));
     auto is_negative = parsed_val < 0;
     auto useval = ONEHUN * (static_cast<int>(is_negative)); // make branchless
     start_pos = (useval + (((start_pos + parsed_val)))) % ONEHUN;
@@ -51,7 +54,7 @@ static auto process_file_part2(const string &filename) -> int {
   std::fstream file(filename);
   while (std::getline(file, line)) {
 
-    auto parsed_val = parse_line(string_view(line));
+    auto parsed_val = parse_line<int>(string_view(line));
     auto is_left = static_cast<int>(parsed_val < 0);
     int count = parsed_val - (2 * parsed_val * is_left);
 

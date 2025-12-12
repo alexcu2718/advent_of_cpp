@@ -1,134 +1,114 @@
-#include <algorithm>
-#include <array>
 #include <cassert>
+#include <cctype>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
-using std::array;
+
 using std::format;
 using std::ifstream;
-using std::pair;
 using std::string;
 using std::string_view;
 using std::vector;
 
-using IngredientList = pair<vector<array<uint64_t, 2>>, vector<uint64_t>>;
+using Matrix = vector<vector<string>>;
 
-static auto parse_str(string_view spos) -> uint64_t {
-  constexpr int TEN{10};
+template <typename IntType>
+  requires std::integral<IntType>
+static auto parse_str(string_view spos) -> IntType {
+  constexpr IntType TEN{10};
 
-  uint64_t init{0};
-  for (auto const &ch : spos) {
-    init = (init * TEN) + static_cast<uint64_t>(ch - '0');
+  IntType init{0};
+  for (auto const ch : spos) {
+    init = (init * TEN) + static_cast<IntType>(ch - '0');
   }
 
   return init;
 }
 
-static auto read_file(const string &filename) -> IngredientList {
+static auto read_file(const string &filename) -> Matrix {
+  namespace views = std::views;
+
   ifstream inputFile(filename);
+  Matrix result;
 
-  vector<array<uint64_t, 2>> id_range;
-  vector<uint64_t> available_ids;
-  string line;
+  for (string line; std::getline(inputFile, line);) {
+    // remove starting all spaces, make a vector of vector of strings (probably
+    // shitty solution but eh)
+    auto words =
+        line | // pipe operator my beloved
+        views::drop_while([](char c) -> auto { return std::isspace(c); }) |
 
-  bool passed_newline = false;
-  while (std::getline(inputFile, line)) {
+        views::reverse |
+        views::drop_while([](char c) -> auto { return std::isspace(c); }) |
+        views::reverse | views::split(' ') |
+        views::filter(
+            [](auto &&word_range) -> auto { return !word_range.empty(); }) |
 
-    if (!passed_newline) {
-      if (line.empty()) {
-        passed_newline = true;
-        continue;
+        views::transform([](auto &&word_range) -> auto {
+          return string(word_range.begin(), word_range.end());
+        });
+
+    vector<string> line_words;
+    for (auto &&word : words) {
+      line_words.push_back(std::move(word));
+    }
+    result.push_back(std::move(line_words));
+  }
+
+  return result;
+}
+
+static auto calculate(const Matrix &matrix)
+    -> uint64_t { // this better not overflow!
+  uint64_t grand_total{0};
+  auto rows = matrix.size();
+  auto cols = matrix[0].size();
+
+  size_t col = 0;
+  while (col < cols) {
+    const size_t start_col = col;
+    const size_t end_col = col;
+
+    vector<uint64_t> numbers;
+    for (size_t c = start_col; c <= end_col; ++c) {
+      for (size_t r = 0; r < rows - 1; ++r) {
+        numbers.push_back(parse_str<uint64_t>(matrix[r][c]));
       }
-
-      auto hyphen_pos = line.find('-');
-      auto id_start = parse_str(string_view(line).substr(0, hyphen_pos));
-      auto id_end = parse_str(string_view(line).substr(hyphen_pos + 1));
-      assert(id_start <= id_end);
-      auto newpair = array{id_start, id_end};
-      id_range.push_back(newpair);
-    } else {
-
-      available_ids.push_back(parse_str(string_view(line)));
     }
-  }
+    const char op = matrix[rows - 1][end_col][0];
 
-  return std::make_pair(id_range, available_ids);
-}
-
-static auto find_ingredients(const IngredientList &list) -> uint64_t {
-
-  auto idranges = list.first;
-
-  auto available_ingredients = list.second;
-  uint64_t start = 0;
-  // probably inefficient but I dont know a better algorithm
-  for (auto const &ingred : available_ingredients) {
-    for (auto const &avail : idranges) {
-      if (avail[0] <= ingred && ingred <= avail[1]) {
-        start++;
-        break;
+    uint64_t result = (op == '+') ? 0 : 1;
+    for (auto n : numbers) {
+      if (op == '+') {
+        result += n;
+      } else if (op == '*') {
+        result *= n;
       }
     }
+    grand_total += result;
+
+    col = end_col + 1;
   }
-  return start;
+  return grand_total;
 }
-
-static auto count_fresh_ids(const IngredientList &list) -> uint64_t {
-  auto idranges = list.first;
-
-  std::ranges::sort(idranges, {}, [](const array<uint64_t, 2> &range) -> auto {
-    return range[0];
-  });
-
-  uint64_t total_count = 0;
-  uint64_t current_start = idranges[0][0];
-  uint64_t current_end = idranges[0][1];
-
-  for (size_t i = 1; i < idranges.size(); ++i) {
-    const uint64_t next_start = idranges[i][0];
-    const uint64_t next_end = idranges[i][1];
-
-    if (next_start <= current_end + 1) {
-      current_end = std::max(current_end, next_end);
-    } else {
-      total_count += (current_end - current_start + 1);
-      current_start = next_start;
-      current_end = next_end;
-    }
-  }
-
-  total_count += (current_end - current_start + 1);
-
-  return total_count;
-}
-
 auto main() -> int {
 
-  auto sample_results = read_file("./aoc_inputs/day5_sample.txt");
-  auto sample_p2 = count_fresh_ids(sample_results);
-  std::cout << format("Sample P2 result: {}\n", sample_p2);
-  assert(sample_p2 == 14);
+  auto result_sample = read_file("./aoc_inputs/day6_sample.txt");
+  auto calc_sample = calculate(result_sample);
+  auto result_part1 = read_file("./aoc_inputs/day6.txt");
+  auto calc_p1 = calculate(result_part1);
 
-  auto results = read_file("./aoc_inputs/day5.txt");
-
-  auto get_results_p1 = find_ingredients(results);
-
-  std::cout << format("The available ingredients for P1 are {}\n",
-                      get_results_p1);
-  assert(get_results_p1 == 733);
-
-  auto get_results_p2 = count_fresh_ids(results);
-  std::cout << format("The total fresh ingredient IDs for P2 are {}\n",
-                      get_results_p2);
-
-  assert(get_results_p2 == 345821388687084);
+  std::cout << format("the answer for sample is {}, the answer for p1 is {}\n",
+                      calc_sample, calc_p1);
+  // Now i see day6 p2 and im ill and lazy. sigh.
 
   return 0;
 }

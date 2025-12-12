@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cassert>
+#include <concepts>
 #include <cstddef>
 #include <cstdint>
 #include <format>
@@ -7,18 +8,19 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-
 using std::format;
 using std::ifstream;
 using std::string;
 using std::string_view;
 
-static auto parse_char(string_view spos) -> uint64_t {
-  constexpr int TEN{10};
+template <typename IntType>
+  requires std::integral<IntType>
+static auto parse_char(string_view spos) -> IntType {
+  constexpr IntType TEN{10};
 
-  uint64_t init{0};
+  IntType init{0};
   for (auto const &ch : spos) {
-    init = (init * TEN) + static_cast<uint64_t>(ch - '0');
+    init = (init * TEN) + static_cast<IntType>(ch - '0');
   }
 
   return init;
@@ -42,7 +44,7 @@ static auto get_max(string_view str, size_t length) -> uint64_t {
     start = (max_it - str.begin()) + 1;
   }
 
-  return parse_char(string_view(result));
+  return parse_char<uint64_t>(string_view(result));
 }
 
 static auto process_file(const string &filename, size_t length) -> uint64_t {
@@ -62,9 +64,9 @@ auto main() -> int {
 
   auto totalp1 = process_file("./aoc_inputs/day3.txt", 2);
   auto totalp2 = process_file("./aoc_inputs/day3.txt", 12);
-  std::cout << format("Full total part1: {} \n and the answer for part 2 is {}",
-                      totalp1, totalp2)
-            << "\n";
+  std::cout << format(
+      "Full total part1: {} \n and the answer for part 2 is {}\n", totalp1,
+      totalp2);
   assert(totalp1 == 17031);
   assert(totalp2 == 168575096286051);
 

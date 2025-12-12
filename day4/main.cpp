@@ -96,9 +96,8 @@ auto main() -> int {
   const auto part2 = solve_part2(part2_matrix);
 
   std::cout << format("found {} available in sample\nfound {} available to "
-                      "move in part1\n and answer to part2 is {}",
-                      sample, part1, part2)
-            << "\n";
+                      "move in part1\n and answer to part2 is {}\n",
+                      sample, part1, part2);
 
   return 0;
 }
